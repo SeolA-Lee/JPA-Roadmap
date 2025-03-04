@@ -20,6 +20,15 @@ public class ItemService {
         itemRepository.save(item);
     }
 
+    @Transactional
+    public void updateItem(Long itemId, String name, int price, int stockQuantity) { // 변경 감지 기능 적용 (최대한 병합 사용 안 하는 게 좋음)
+        Item findItem = itemRepository.findOne(itemId);
+//        findItem.change(name, price, stockQuantity); -> 아래와 같이 setXxx 말고 메서드화 시켜서 변경 권장
+        findItem.setName(name);
+        findItem.setPrice(price);
+        findItem.setStockQuantity(stockQuantity);
+    }
+
     public List<Item> findItems() {
         return itemRepository.findAll();
     }
