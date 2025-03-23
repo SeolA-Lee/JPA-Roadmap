@@ -1,16 +1,13 @@
 package hellojpa;
 
 import jakarta.persistence.*;
-import org.h2.engine.User;
-
-import java.util.List;
 
 public class JpaMain {
 
     public static void main(String[] args) {
 
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("hello");
-        EntityManager em = emf.createEntityManager(); // EntityManager는 쓰레다 간의 공유 X!!
+        EntityManager em = emf.createEntityManager(); // EntityManager는 쓰레드 간의 공유 X!!
 
         /**
          * JPA의 모든 데이터 변경은 트랜잭션 안에서 실행됨
@@ -20,20 +17,33 @@ public class JpaMain {
 
         try {
 
-            Member member = new Member();
-//            member.setId(1L);
-//            member.setUsername("A");
-//            member.setRoleType(RoleType.USER);
+//            Member member = new Member();
+//            member.setId("ID_A");
+//            member.setUsername("C");
 
-//            member.setId(2L);
-//            member.setUsername("B");
-//            member.setRoleType(RoleType.ADMIN);
+            Member member1 = new Member();
+            member1.setUsername("A");
 
-            member.setId(3L);
-            member.setUsername("C");
-            member.setRoleType(RoleType.GUEST);
+            Member member2 = new Member();
+            member2.setUsername("B");
 
-            em.persist(member);
+            Member member3 = new Member();
+            member3.setUsername("C");
+
+            System.out.println("======================");
+
+//            em.persist(member); // INDENTITY로 설정 시 바로 Insert Query를 날림
+//            System.out.println("member.id = " + member.getId()); // Insert 하는 시점에 이 값을 바로 알 수 있기 때문에 Select 쿼리는 X
+
+            em.persist(member1); // 1, 51
+            em.persist(member2); // MEM
+            em.persist(member3); // MEM
+
+            System.out.println("member1 = " + member1.getId());
+            System.out.println("member2 = " + member2.getId());
+            System.out.println("member3 = " + member3.getId());
+
+            System.out.println("======================");
 
             tx.commit();
         } catch (Exception e) {
