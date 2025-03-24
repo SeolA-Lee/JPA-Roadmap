@@ -2,6 +2,9 @@ package jpabook.jpashop.domain;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 public class Member {
 
@@ -12,6 +15,9 @@ public class Member {
     private String city;
     private String street;
     private String zipcode;
+
+    @OneToMany(mappedBy = "member")
+    private List<Order> orders = new ArrayList<>(); // 실무에선 설계할 때 이 양방향이 꼭 필요한지를 생각해야 함. 여기선 예제이므로 사용
 
     public Long getId() {
         return id;
