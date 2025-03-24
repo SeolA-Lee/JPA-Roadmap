@@ -3,25 +3,31 @@ package hellojpa;
 import jakarta.persistence.*;
 
 @Entity
-@SequenceGenerator(name = "MEMBER_SEQ_GENERATOR", sequenceName = "member_seq",
-        initialValue = 1, allocationSize = 50)
-//@TableGenerator( // 운영에선 거의 사용 X
-//        name = "MEMBER_SEQ_GENERATOR",
-//        table = "MY_SEQUENCES",
-//        pkColumnValue = "MEMBER_SEQ", allocationSize = 1)
 public class Member {
 
-    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY) // MySQL의 AUTO_INCREMENT
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MEMBER_SEQ_GENERATOR")
-//    @GeneratedValue(strategy = GenerationType.TABLE, generator = "MEMBER_SEQ_GENERATOR")
+    @Id @GeneratedValue
+    @Column(name = "MEMBER_ID")
     private Long id;
-//    private String id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "USERNAME")
     private String username;
 
-    public Member() {
+//    @Column(name = "TEAM_ID")
+//    private Long teamId;
+
+    /**
+     * 연관관계 매핑
+     */
+    @ManyToOne
+    @JoinColumn(name = "TEAM_ID")
+    private Team team;
+
+    /**
+     * 연관관계 편의 메소드 방법 1
+     */
+    public void changeTeam(Team team) {
+        this.team = team;
+        team.getMembers().add(this);
     }
 
     public Long getId() {
@@ -38,5 +44,13 @@ public class Member {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public Team getTeam() {
+        return team;
+    }
+
+    public void setTeam(Team team) {
+        this.team = team;
     }
 }

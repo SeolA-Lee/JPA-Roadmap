@@ -2,6 +2,8 @@ package hellojpa;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 public class JpaMain {
 
     public static void main(String[] args) {
@@ -17,32 +19,46 @@ public class JpaMain {
 
         try {
 
-//            Member member = new Member();
-//            member.setId("ID_A");
-//            member.setUsername("C");
+            // 저장
+            Team team = new Team();
+            team.setName("TeamA");
+            em.persist(team);
 
-            Member member1 = new Member();
-            member1.setUsername("A");
+            Member member = new Member();
+            member.setUsername("member1");
+//            member.setTeam(team); // 단방향 연관관계 설정, 참조 저장
+            /**
+             * 연관관계 편의 메소드 방법 1
+             */
+//            member.changeTeam(team);
+            em.persist(member);
 
-            Member member2 = new Member();
-            member2.setUsername("B");
+            /**
+             * 연관관계 편의 메소드 방법 2
+             */
+            team.addMember(member);
 
-            Member member3 = new Member();
-            member3.setUsername("C");
+            /**
+             * 이 줄과 em.flush(), clear()를 주석처리하면 iter 안의 내용이 출력되지 않음
+             * 따라서 양방향 매핑 시 양쪽으로 값을 세팅해줘야 함
+             */
+//            team.getMembers().add(member); // -> 연관관계 편의 메소드로 생성함
+
+            /**
+             * 아래처럼 em.flush(); em.clear(); 를 해야
+             * 1차 캐시가 아닌, DB에서 깔끔하게 값을 불러올 수 있음
+             */
+//            em.flush();
+//            em.clear();
+
+
+            Team findTeam = em.find(Team.class, team.getId()); // 1차 캐시
+            List<Member> members = findTeam.getMembers();
 
             System.out.println("======================");
-
-//            em.persist(member); // INDENTITY로 설정 시 바로 Insert Query를 날림
-//            System.out.println("member.id = " + member.getId()); // Insert 하는 시점에 이 값을 바로 알 수 있기 때문에 Select 쿼리는 X
-
-            em.persist(member1); // 1, 51
-            em.persist(member2); // MEM
-            em.persist(member3); // MEM
-
-            System.out.println("member1 = " + member1.getId());
-            System.out.println("member2 = " + member2.getId());
-            System.out.println("member3 = " + member3.getId());
-
+            for (Member m : members) {
+                System.out.println("m = " + m.getUsername());
+            }
             System.out.println("======================");
 
             tx.commit();
