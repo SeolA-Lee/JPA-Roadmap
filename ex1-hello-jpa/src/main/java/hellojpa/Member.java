@@ -12,20 +12,10 @@ public class Member extends BaseEntity {
     @Column(name = "USERNAME")
     private String username;
 
-    /**
-     * 연관관계 매핑
-     */
-    @ManyToOne
-    @JoinColumn(name = "TEAM_ID")
+    @ManyToOne(fetch = FetchType.LAZY) // 지연로딩
+//    @ManyToOne(fetch = FetchType.EAGER) // 즉시로딩
+    @JoinColumn
     private Team team;
-
-    /**
-     * 연관관계 편의 메소드 방법 1
-     */
-    public void changeTeam(Team team) {
-        this.team = team;
-        team.getMembers().add(this);
-    }
 
     public Long getId() {
         return id;

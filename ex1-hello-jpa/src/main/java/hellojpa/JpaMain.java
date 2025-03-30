@@ -1,7 +1,8 @@
 package hellojpa;
 
 import jakarta.persistence.*;
-import org.hibernate.Hibernate;
+
+import java.util.List;
 
 public class JpaMain {
 
@@ -18,81 +19,51 @@ public class JpaMain {
 
         try {
 
-//            Member member = new Member();
-//            member.setUsername("hello");
+            Team team = new Team();
+            team.setName("teamA");
+            em.persist(team);
 
-//            em.persist(member);
+            Team teamB = new Team();
+            teamB.setName("teamB");
+            em.persist(teamB);
 
-//            em.flush();
-//            em.clear();
-
-            /* 1차 캐시에 아무것도 남지 않음 */
-//            Member findMember = em.getReference(Member.class, member.getId()); // 여기서 쿼리가 나가지 않음
-//            System.out.println("findMember = " + findMember.getClass()); // Proxy 클래스
-
-//            System.out.println("findMember.id = " + findMember.getId()); // 여긴 파라미터값에서 가져와서 DB 쿼리 X
-//            System.out.println("findMember.username = " + findMember.getUsername()); // 실제로 사용할 시점에서 쿼리가 나감
-//            System.out.println("findMember.username = " + findMember.getUsername()); // 두 번째 요청이므로 이미 초기화 되어 있는 Proxy 이기에 쿼리 X
-
-            /**
-             * 프록시 특징 예제
-             */
             Member member1 = new Member();
-            member1.setUsername("hello1");
+            member1.setUsername("member1");
+            member1.setTeam(team);
             em.persist(member1);
 
-//            Member member2 = new Member();
-//            member2.setUsername("hello2");
-//            em.persist(member2);
+            Member member2 = new Member();
+            member2.setUsername("member2");
+            member2.setTeam(teamB);
+            em.persist(member2);
+
 
             em.flush();
             em.clear();
 
-            /**
-             * 1. 프록시 객체는 원본 엔티티를 상속 받음
-             *    타입 체크 시 '==' 비교 X, instance of 사용
-             */
-//            Member m1 = em.find(Member.class, member1.getId());
-//            Member m2 = em.getReference(Member.class, member2.getId());
+//            Member m = em.find(Member.class, member1.getId());
 
-//            logic(m1, m2);
+//            System.out.println("m = " + m.getTeam().getClass()); // 지연로딩 시 Proxy로 가져 옴
 
-            /**
-             * 2. 영속성 컨텍스트에 찾는 엔티티가 이미 있으면
-             *    em.getReference()를 호출해도 실제 엔티티 반환
-             */
-//            Member m1 = em.find(Member.class, member1.getId());
-//            System.out.println("m1 = " + m1.getClass());
-
-//            Member reference = em.getReference(Member.class, member1.getId());
-//            System.out.println("reference = " + reference.getClass());
-
-//            System.out.println("a == a: " + (m1 == reference));
-
-            /* 반대도 성립 */
-//            Member refMember = em.getReference(Member.class, member1.getId());
-//            System.out.println("refMember = " + refMember.getClass());
-
-//            Member findMember = em.find(Member.class, member1.getId());
-//            System.out.println("findMember = " + findMember.getClass());
-
-//            System.out.println("refMember == findMember: " + (refMember == findMember));
+//            System.out.println("===============");
+//            System.out.println("teamName = " + m.getTeam().getName()); // 지연로딩 시 초기화
+//            System.out.println("===============");
 
             /**
-             * 3. 영속성 컨텍스트의 도움을 받을 수 없는 준영속 상태일 때,
-             *    프록시를 초기화 하면 문제 발생
+             * 즉시로딩 사용 시 JPQL에서 N+1 문제를 일으킴
+             * SQL: select * from Member; -- EAGER이므로 Team 테이블도 불러옴
+             * SQL: select * from Team where TEAM_ID = xxx;
              */
-            Member refMember = em.getReference(Member.class, member1.getId());
-            System.out.println("refMember = " + refMember.getClass()); // Proxy
+//            List<Member> members = em.createQuery("select m from Member m", Member.class)
+//                    .getResultList();
 
-//            em.detach(refMember); // 더 이상 영속성 컨텍스트에서 관리 X
-//            em.clear();
-
-//            refMember.getUsername(); // detach 또는 clear 시 Error 발생
-
-//            System.out.println("isLoaded = " + emf.getPersistenceUnitUtil().isLoaded(refMember)); // 초기화 여부 확인
-
-            Hibernate.initialize(refMember); // 강제 초기화
+            /**
+             * 기본 해결방안
+             * (1) LAZY로 다 바꿈
+             * (2) fetch 조인 사용
+             */
+            List<Member> members = em.createQuery("select m from Member m join fetch m.team", Member.class)
+                    .getResultList();
 
             tx.commit();
         } catch (Exception e) {
@@ -103,11 +74,5 @@ public class JpaMain {
         }
 
         emf.close();
-    }
-
-    private static void logic(Member m1, Member m2) {
-//        System.out.println("m1 == m2: " + (m1.getClass() == m2.getClass())); // 둘 다 em.find()로 찾을 땐 true 하지만 getReference()는 false
-        System.out.println("m1 == m2: " + (m1 instanceof Member));
-        System.out.println("m1 == m2: " + (m2 instanceof Member));
     }
 }
