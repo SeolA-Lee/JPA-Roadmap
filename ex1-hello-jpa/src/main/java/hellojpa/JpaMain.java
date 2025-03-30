@@ -2,7 +2,7 @@ package hellojpa;
 
 import jakarta.persistence.*;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 public class JpaMain {
 
@@ -19,47 +19,40 @@ public class JpaMain {
 
         try {
 
-            // 저장
-            Team team = new Team();
-            team.setName("TeamA");
-            em.persist(team);
-
-            Member member = new Member();
-            member.setUsername("member1");
-//            member.setTeam(team); // 단방향 연관관계 설정, 참조 저장
             /**
-             * 연관관계 편의 메소드 방법 1
+             * 상속관계 매핑 예제
              */
-//            member.changeTeam(team);
-            em.persist(member);
+//            Movie movie = new Movie();
+//            movie.setDirector("aaaa");
+//            movie.setActor("bbbb");
+//            movie.setName("바람과함께사라지다");
+//            movie.setPrice(10000);
 
-            /**
-             * 연관관계 편의 메소드 방법 2
-             */
-            team.addMember(member);
+//            em.persist(movie);
 
-            /**
-             * 이 줄과 em.flush(), clear()를 주석처리하면 iter 안의 내용이 출력되지 않음
-             * 따라서 양방향 매핑 시 양쪽으로 값을 세팅해줘야 함
-             */
-//            team.getMembers().add(member); // -> 연관관계 편의 메소드로 생성함
-
-            /**
-             * 아래처럼 em.flush(); em.clear(); 를 해야
-             * 1차 캐시가 아닌, DB에서 깔끔하게 값을 불러올 수 있음
-             */
 //            em.flush();
 //            em.clear();
 
+            /* em.flush(); em.clear(); 로 인해 1차캐시에 아무것도 남아있지 않은 상황 */
+//            Movie findMovie = em.find(Movie.class, movie.getId());
+//            System.out.println("findMovie = " + findMovie);
 
-            Team findTeam = em.find(Team.class, team.getId()); // 1차 캐시
-            List<Member> members = findTeam.getMembers();
+            /* 구현 클래스마다 테이블 전략 예시 */
+//            Item item = em.find(Item.class, movie.getId());
+//            System.out.println("item = " + item);
 
-            System.out.println("======================");
-            for (Member m : members) {
-                System.out.println("m = " + m.getUsername());
-            }
-            System.out.println("======================");
+            /**
+             * @MappedSuperclass 예제
+             */
+            Member member = new Member();
+            member.setUsername("user1");
+            member.setCreatedBy("kim");
+            member.setCreatedDate(LocalDateTime.now());
+
+            em.persist(member);
+
+            em.flush();
+            em.clear();
 
             tx.commit();
         } catch (Exception e) {
