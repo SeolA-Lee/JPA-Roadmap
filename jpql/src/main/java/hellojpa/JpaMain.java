@@ -1,6 +1,9 @@
 package hellojpa;
 
+import hellojpa.jpql.Address;
 import hellojpa.jpql.Member;
+import hellojpa.jpql.MemberDTO;
+import hellojpa.jpql.Team;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -21,31 +24,49 @@ public class JpaMain {
             member.setAge(10);
             em.persist(member);
 
-            /**
-             * TypeQuery, Query
-             */
-//            TypedQuery<Member> query1 = em.createQuery("select m from Member m", Member.class);
-//            TypedQuery<String> query2 = em.createQuery("select m.username from Member m", String.class);
-//            Query query3 = em.createQuery("select m.username, m.age from Member m"); // Query: 반환 타입이 명확하지 않음
+            em.flush();
+            em.clear();
 
             /**
-             * 결과 조회 API: getResultList(), getSingleResult()
+             * 엔티티 프로젝션
+             * SELECT m FROM Member m
              */
-//            List<Member> resultList = query1.getResultList(); // getResultList(): 결과가 없으면 빈 리스트 반환
+//            List<Member> result = em.createQuery("select m from Member m", Member.class)
+//                    .getResultList();
 
-//            TypedQuery<Member> noResultQuery = em.createQuery("select m from Member m", Member.class);
-//            Member result = noResultQuery.getSingleResult();
-//            System.out.println("result = " + result);
+//            Member findMember = result.get(0);
+//            findMember.setAge(20);
 
             /**
-             * 파라미터 바인딩 - 이름 기준
-             * 주의! 위치 기반은 웬만해선 사용하지 않는 것을 권장
+             * 엔티티 프로젝션
+             * SELECT m.team FROM Member m
+             * -> SELECT t FROM Member m join m.team 처럼 명시적으로 join을 표현하는 것이 좋음
              */
-            Member result = em.createQuery("select m from Member m where m.username = :username", Member.class)
-                    .setParameter("username", "member1")
-                    .getSingleResult();
+//            List<Team> result = em.createQuery("select t from Member m join m.team t", Team.class)
+//                    .getResultList();
 
-            System.out.println("result = " + result.getUsername());
+            /**
+             * 임베디드 타입 프로젝션
+             * SELECT o.address FROM Order o
+             * 주의! SELECT a FROM Address a 처럼 실행할 수는 없음 (소속되어 있기 때문)
+             */
+//            em.createQuery("select o.address from Order o", Address.class)
+//                    .getResultList();
+
+            /**
+             * 스칼라 타입 프로젝션
+             * SELECT m.username, m.age FROM Member m
+             */
+//            em.createQuery("select distinct m.username, m.age from Member m")
+//                    .getResultList();
+
+            /* 여러 값 조회 방법 - new 명령어로 조회 */
+            List<MemberDTO> result = em.createQuery("select new hellojpa.jpql.MemberDTO(m.username, m.age) from Member m", MemberDTO.class)
+                    .getResultList();                               // 주의! 패키지명을 포함한 전체 클래스명 입력
+
+            MemberDTO memberDTO = result.get(0);
+            System.out.println("memberDTO = " + memberDTO.getUsername());
+            System.out.println("memberDTO = " + memberDTO.getAge());
 
             tx.commit();
         } catch (Exception e) {
