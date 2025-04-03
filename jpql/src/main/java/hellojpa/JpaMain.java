@@ -32,14 +32,10 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-            /* 조인 */
-//            String query = "select m from Member m inner join m.team t"; // 1) 내부 조인 (inner 생략 가능)
-//            String query = "select m from Member m left outer join m.team t"; // 2) 외부 조인 (outer 생략 가능)
-//            String query = "select m from Member m, Team t where m.username = t.name"; // 3) 세타 조인
+            String query = "select (select avg(m1.age)from Member m1) as avgAge from Member m left join Team t on m.username = t.name"; // SELECT절 서브쿼리
+//            String query = "select mm.age, mm.username " +
+//                            "from (select m.age, m.username from Member m) as mm"; // FROM절 서브쿼리 -> 하이버네이트6부터 지원함
 
-            /* 조인 - ON절 */
-//            String query = "select m from Member m left join m.team t on t.name = 'teamA'"; // 1) 조인 대상 필터링
-            String query = "select m from Member m left join Team t on m.username = t.name"; // 2) 연관관계 없는 엔티티 외부 조인
             List<Member> result = em.createQuery(query, Member.class)
                     .getResultList();
 
