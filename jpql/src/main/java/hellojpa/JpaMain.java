@@ -34,24 +34,25 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-            /* 기본 CASE 식 */
-//            String query =
-//                    "select " +
-//                            "case when m.age <= 10 then '학생요금' " +
-//                            "     when m.age >= 10 then '경로요금' " +
-//                            "     else '일반요금'" +
-//                            "end " +
-//                    "from Member m";
+            /**
+             * JPQL 기본 함수
+             */
+//            String query = "select concat('a', 'b') from Member m"; // CONCAT (String으로 반환)
+//            String query = "select substring(m.username, 2, 3) from Member m"; // SUBSTRING (String으로 반환)
+//            String query = "select locate('de', 'abcdefg') from Member m"; // LOCATE (Integer로 반환)
+//            String query = "select size(t.members) from Team t"; // SIZE (Integer로 반환)
 
-            /* 조건식 - CASE 식 */
-//            String query = "select coalesce(m.username, '이름 없는 회원') as username " +
-//                            "from Member m"; // COALESCE
-
-            String query = "select nullif(m.username, '관리자') as username " +
-                            "from Member m"; // NULLIF
+            /**
+             * 사용자 정의 함수 호출
+             */
+//            String query = "select function('group_concat', m.username) from Member m"; // 사용법 1
+            String query = "select group_concat(m.username) from Member m"; // 사용법 2
 
             List<String> result = em.createQuery(query, String.class)
                     .getResultList();
+
+//            List<Integer> result = em.createQuery(query, Integer.class)
+//                    .getResultList();
 
             for (String s : result) {
                 System.out.println("s = " + s);
