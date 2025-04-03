@@ -1,6 +1,7 @@
 package hellojpa;
 
 import hellojpa.jpql.Member;
+import hellojpa.jpql.MemberType;
 import hellojpa.jpql.Team;
 import jakarta.persistence.*;
 
@@ -24,6 +25,7 @@ public class JpaMain {
             Member member = new Member();
             member.setUsername("teamA");
             member.setAge(10);
+            member.setType(MemberType.ADMIN);
 
             member.setTeam(team);
 
@@ -32,14 +34,19 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-            String query = "select (select avg(m1.age)from Member m1) as avgAge from Member m left join Team t on m.username = t.name"; // SELECT절 서브쿼리
-//            String query = "select mm.age, mm.username " +
-//                            "from (select m.age, m.username from Member m) as mm"; // FROM절 서브쿼리 -> 하이버네이트6부터 지원함
+            String query = "select m.username, 'HELLO', true from Member m " +
+//                            "where m.type = hellojpa.jpql.MemberType.ADMIN";
+                            "where m.type = :userType";
 
-            List<Member> result = em.createQuery(query, Member.class)
+            List<Object[]> result = em.createQuery(query)
+                    .setParameter("userType", MemberType.ADMIN)
                     .getResultList();
 
-            System.out.println("result = " + result.size());
+            for (Object[] objects : result) {
+                System.out.println("objects = " + objects[0]);
+                System.out.println("objects = " + objects[1]);
+                System.out.println("objects = " + objects[2]);
+            }
 
             tx.commit();
         } catch (Exception e) {
