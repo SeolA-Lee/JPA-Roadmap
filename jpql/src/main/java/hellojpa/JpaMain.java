@@ -22,39 +22,34 @@ public class JpaMain {
             team.setName("teamA");
             em.persist(team);
 
-            Member member = new Member();
-            member.setUsername("관리자");
-            member.setAge(10);
-            member.setType(MemberType.ADMIN);
+            Member member1 = new Member();
+            member1.setUsername("관리자1");
+            member1.setAge(10);
+            member1.setType(MemberType.ADMIN);
+            member1.setTeam(team);
+            em.persist(member1);
 
-            member.setTeam(team);
-
-            em.persist(member);
+            Member member2 = new Member();
+            member2.setUsername("관리자2");
+            member2.setTeam(team);
+            em.persist(member2);
 
             em.flush();
             em.clear();
 
             /**
-             * JPQL 기본 함수
+             * 경로 표현식
+             * - 실무에선 묵시적 조인을 사용하지 않는 것을 권장
              */
-//            String query = "select concat('a', 'b') from Member m"; // CONCAT (String으로 반환)
-//            String query = "select substring(m.username, 2, 3) from Member m"; // SUBSTRING (String으로 반환)
-//            String query = "select locate('de', 'abcdefg') from Member m"; // LOCATE (Integer로 반환)
-//            String query = "select size(t.members) from Team t"; // SIZE (Integer로 반환)
+            String query = "select m.username from Member m"; // 1) 상태 필드
+//            String query = "select m.team from Member m"; // 2) 단일 값 연관 경로 -> 묵시적 내부 조인 발생, 탐색 O
+//            String query = "select t.members from Team t"; // 3) 컬렉션 값 연관 경로 -> 묵시적 내부 조인 발생, 탐색 X
+//            String query = "select m from Team t join t.members m"; // 3-1) 탐색을 위한 명시적 조인
 
-            /**
-             * 사용자 정의 함수 호출
-             */
-//            String query = "select function('group_concat', m.username) from Member m"; // 사용법 1
-            String query = "select group_concat(m.username) from Member m"; // 사용법 2
-
-            List<String> result = em.createQuery(query, String.class)
+            List<Member> result = em.createQuery(query, Member.class)
                     .getResultList();
 
-//            List<Integer> result = em.createQuery(query, Integer.class)
-//                    .getResultList();
-
-            for (String s : result) {
+            for (Member s : result) {
                 System.out.println("s = " + s);
             }
 
