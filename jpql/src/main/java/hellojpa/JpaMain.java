@@ -1,7 +1,6 @@
 package hellojpa;
 
 import hellojpa.jpql.Member;
-import hellojpa.jpql.MemberType;
 import hellojpa.jpql.Team;
 import jakarta.persistence.*;
 
@@ -18,39 +17,49 @@ public class JpaMain {
 
         try {
 
-            Team team = new Team();
-            team.setName("teamA");
-            em.persist(team);
+            Team teamA = new Team();
+            teamA.setName("팀A");
+            em.persist(teamA);
+
+            Team teamB = new Team();
+            teamB.setName("팀B");
+            em.persist(teamB);
 
             Member member1 = new Member();
-            member1.setUsername("관리자1");
-            member1.setAge(10);
-            member1.setType(MemberType.ADMIN);
-            member1.setTeam(team);
+            member1.setUsername("회원1");
+            member1.setTeam(teamA);
             em.persist(member1);
 
             Member member2 = new Member();
-            member2.setUsername("관리자2");
-            member2.setTeam(team);
+            member2.setUsername("회원2");
+            member2.setTeam(teamA);
             em.persist(member2);
+
+            Member member3 = new Member();
+            member3.setUsername("회원3");
+            member3.setTeam(teamB);
+            em.persist(member3);
 
             em.flush();
             em.clear();
 
-            /**
-             * 경로 표현식
-             * - 실무에선 묵시적 조인을 사용하지 않는 것을 권장
-             */
-            String query = "select m.username from Member m"; // 1) 상태 필드
-//            String query = "select m.team from Member m"; // 2) 단일 값 연관 경로 -> 묵시적 내부 조인 발생, 탐색 O
-//            String query = "select t.members from Team t"; // 3) 컬렉션 값 연관 경로 -> 묵시적 내부 조인 발생, 탐색 X
-//            String query = "select m from Team t join t.members m"; // 3-1) 탐색을 위한 명시적 조인
+//            String query = "select m from Member m join fetch m.team";
+//            String query = "select t from Team t join fetch t.members m";
+            String query = "select t from Team t";
 
-            List<Member> result = em.createQuery(query, Member.class)
+            List<Team> result = em.createQuery(query, Team.class)
+                    .setFirstResult(0)
+                    .setMaxResults(2)
                     .getResultList();
 
-            for (Member s : result) {
-                System.out.println("s = " + s);
+            System.out.println("result = " + result.size());
+
+            for (Team team : result) {
+                System.out.println("team = " + team.getName() + " | members = " + team.getMembers().size());
+                for (Member member : team.getMembers()) {
+                    System.out.println("-> member = " + member);
+
+                }
             }
 
             tx.commit();
